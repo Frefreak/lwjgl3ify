@@ -211,15 +211,17 @@ public class Display {
                     cancelNextChar = false;
                 } else if (ingredientKeyEvent != null) {
                     releaseEvents.clear();
-                    if (Keyboard.eventQueue.size() > 1) {
-                        for (Keyboard.KeyEvent evt : Keyboard.eventQueue) {
-                            if (!evt.state.isPressed) {
-                                releaseEvents.add(evt);
-                            }
+                    for (Keyboard.KeyEvent evt : Keyboard.eventQueue) {
+                        if (!evt.state.isPressed) {
+                            releaseEvents.add(evt);
                         }
                     }
                     ingredientKeyEvent.aChar = (char) codepoint; // Send char with ASCII key event here
                     Keyboard.eventQueue.add(ingredientKeyEvent);
+                    if (ingredientKeyEvent.state == Keyboard.KeyState.PRESS) {
+                        ingredientKeyEvent = null;
+                        return;
+                    }
                     ingredientKeyEvent = null;
                     Keyboard.eventQueue.addAll(releaseEvents);
                 } else {
