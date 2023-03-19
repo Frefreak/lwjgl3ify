@@ -6,6 +6,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 import java.awt.event.KeyEvent;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 
 import me.eigenraven.lwjgl3ify.Lwjgl3ify;
 import me.eigenraven.lwjgl3ify.core.Config;
@@ -61,6 +62,7 @@ public class Display {
     private static Keyboard.KeyEvent ingredientKeyEvent;
     private static ByteBuffer[] savedIcons;
 
+    private static ArrayList<Keyboard.KeyEvent> releaseEvents = new ArrayList<>();
     static {
         Sys.initialize(); // init using dummy sys method
 
@@ -208,9 +210,18 @@ public class Display {
                 if (cancelNextChar) { // Char event being cancelled
                     cancelNextChar = false;
                 } else if (ingredientKeyEvent != null) {
+                    releaseEvents.clear();
+                    if (Keyboard.eventQueue.size() > 1) {
+                        for (Keyboard.KeyEvent evt : Keyboard.eventQueue) {
+                            if (!evt.state.isPressed) {
+                                releaseEvents.add(evt);
+                            }
+                        }
+                    }
                     ingredientKeyEvent.aChar = (char) codepoint; // Send char with ASCII key event here
                     Keyboard.eventQueue.add(ingredientKeyEvent);
                     ingredientKeyEvent = null;
+                    Keyboard.eventQueue.addAll(releaseEvents);
                 } else {
                     Keyboard.addCharEvent(0, (char) codepoint); // Non-ASCII chars
                 }
